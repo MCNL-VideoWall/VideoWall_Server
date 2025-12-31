@@ -1,6 +1,16 @@
 from fastapi import FastAPI, WebSocket
+from typing import Dict
 
 app = FastAPI()
+
+# ----------------------------------------------------
+# 1. Session class
+class Session:
+    def __init__(self, sessionId: int, sessionName: str):
+        self.sessionId = sessionId
+        self.name = sessionName
+        self.slot: int = 1024
+        self.Clients: Dict[int, WebSocket] = {}
 
 
 @app.websocket("/ws")
