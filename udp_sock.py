@@ -7,7 +7,7 @@ def run_udp_server(host: str = "0.0.0.0", port: int = 65535):
         type=socket.SOCK_DGRAM
     )
 
-    udp_server_sock.bind((BRDCAST_ADDR, PORT))
+    udp_server_sock.bind((host, port))
 
     while True:
         data, addr = udp_server_sock.recvfrom(100)
