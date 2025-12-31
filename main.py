@@ -28,10 +28,15 @@ async def lifespan(app: FastAPI):
         daemon=True
     )
     udp_process.start()
-    print("UDP Server On")
+    print("UDP Server process started")
 
     # Server Cleanup Routine
     yield
+    print("UDP Server Shutting Down...")
+    if udp_process.is_alive():
+        udp_process.terminate()
+        udp_process.join()
+        print("UDP Server process terminated")
 
 
 @app.websocket("/ws")
