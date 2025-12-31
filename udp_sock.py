@@ -7,3 +7,5 @@ udp_server_sock = socket.socket(
     family=socket.AF_INET,
     type=socket.SOCK_DGRAM
 )
+
+udp_server_sock.bind((BRDCAST_ADDR, PORT))
