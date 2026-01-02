@@ -49,3 +49,13 @@ class SessionManager:
                 if session.sessionId == session_id:
                     return True
             return False
+        
+    async def joinSession(self, session_id: str, client_id: str) -> bool:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.sessionId == session_id:
+                    session.clients[client_id] = len(session.clients)
+                    return True
+                
+            return False
+            
