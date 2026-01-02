@@ -3,6 +3,11 @@ from contextlib import asynccontextmanager
 import multiprocessing
 from udp_sock import run_udp_server
 import session
+from typing import Dict
+
+
+clients: Dict[str, WebSocket] = {}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
