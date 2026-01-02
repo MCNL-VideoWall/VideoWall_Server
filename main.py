@@ -49,7 +49,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                 case "HELLO":
                     await handle_hello(websocket, client_uuid)
                 case "SESSION_LIST_REQ":
-                    await handle_session_list_response(client_uuid)
+                    await handle_session_list_request(client_uuid)
                     print("SESSION_LIST_REQ")
                 case "SESSION_CREATE":
                     print("SESSION_CREATE")
@@ -77,7 +77,7 @@ async def handle_hello(websocket: WebSocket, client_uuid: str, data):
     async with clients_lock:
         clients[client_uuid] = websocket
 
-async def handle_session_list_response(client_uuid: str):
+async def handle_session_list_request(client_uuid: str):
     async with clients_lock:
         websocket = clients.get(client_uuid)
 
