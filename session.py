@@ -1,4 +1,5 @@
 from typing import Dict, List
+import asyncio
 
 # 1. Session class
 class Session:
@@ -14,28 +15,30 @@ class SessionManager:
 
     def __init__(self):
         self.sessionList: List[Session] = []
+        self.managerLock = asyncio.Lock()   # session manager lock
 
-    def createSession(self, hostId: int, name: str) -> Session:
-        newSession = Session(sessionId=hostId, sessionName=name)
-        self.sessionList.append(newSession)
-        return newSession
+    async def createSession(self, hostId: int, name: str) -> Session:
+        async with self.managerLock:
+            newSession = Session(sessionId=hostId, sessionName=name)
+            self.sessionList.append(newSession)
+            return newSession
 
-    def getSessionList(self):
-        result = []
-        for session in self.sessionList:
+    async def getSessionList(self):
+        async with self.managerLock:
+            result = []
+            for session in self.sessionList:
 
-            clients_info = []
-            for uuid, m_id in session.clients.items():
-                clients_info.append({
-                    "uuid": uuid,
-                    "markerId": m_id
+                clients_info = []
+                for uuid, m_id in session.clients.items():
+                    clients_info.append({
+                        "uuid": uuid,
+                        "markerId": m_id
+                    })
+
+                result.append({
+                    "sessionId": session.sessionId,
+                    "sessionName": session.name,
+                    "currentClientCount": len(session.clients),
+                    "clients": clients_info
                 })
-
-            result.append({
-                "sessionId": session.sessionId,
-                "sessionName": session.name,
-                "currentClientCount": len(session.clients),
-                "clients": clients_info
-            })
-            
-        return result
+            return result
