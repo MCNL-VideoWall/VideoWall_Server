@@ -42,3 +42,10 @@ class SessionManager:
                     "clients": clients_info
                 })
             return result
+        
+    async def isSessionExist(self, session_id: str) -> bool:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.sessionId == session_id:
+                    return True
+            return False
