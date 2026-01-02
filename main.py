@@ -32,8 +32,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket("/ws/{client_uuid}")
+async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     await websocket.accept()
     while True:
         data = await websocket.receive_text()
