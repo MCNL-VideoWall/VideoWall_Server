@@ -24,10 +24,10 @@ def run_udp_server(host: str = "0.0.0.0", port: int = 65535):
                 logger.error(f"bind() error: {e}")
                 return
 
+            recvPacket(udp_server_sock, logger)
+
     except Exception as e:
         logger.critical(f"UDP Server error: {e}")
-
-        # udp_server_sock.bind((host, port))
 
         # while True:
         #     data, addr = udp_server_sock.recvfrom(100)
@@ -35,3 +35,11 @@ def run_udp_server(host: str = "0.0.0.0", port: int = 65535):
         #     if data.decode().strip() == "VIDEO_WALL_CONNECT_REQUEST":
         #         udp_server_sock.sendto(
         #             "VIDEO_WALL_CONNECT_RESPONSE".encode(), addr)
+
+
+def recvPacket(sock: socket.socket, logger: logging.Logger):
+    while True:
+        try:
+            data, addr = sock.recvfrom(100)
+        except Exception as e:
+            logger.error(f"Packet error: {e}")
