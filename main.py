@@ -3,6 +3,11 @@ from contextlib import asynccontextmanager
 import multiprocessing
 from udp_sock import run_udp_server
 import session
+from typing import Dict
+
+
+clients: Dict[str, WebSocket] = {}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,9 +32,41 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket("/ws/{client_uuid}")
+async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            messageType = data.get("type")
+
+            print(f"[{client_uuid}] {data}")
+
+            match messageType:
+                case "HELLO":
+                    handle_hello(websocket, client_uuid)
+                    break
+                case "SESSION_LIST_REQ":
+                    break
+                case "SESSION_CREATE":
+                    break
+                case "SESSION_JOIN":
+                    break
+                case "SESSION_LEAVE":
+                    break
+                case "START":
+                    break
+                case _:
+                    break
+
+    except Exception as e:
+        print(f"Connection closed: {e}")
+    finally:
+        # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
+        # TODO: Client Dict에서 해당 client id 제거
+        print(f"Disconnection routine {client_uuid}")
+
+
+async def handle_hello(websocket: WebSocket, client_uuid: str, data):
+    clients[client_uuid] = websocket
