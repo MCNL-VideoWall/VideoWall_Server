@@ -40,10 +40,12 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
 
     try:
         while True:
-            data = await websocket.receive_json()
-            messageType = data.get("type")
+            message = await websocket.receive_json()
+            messageType = message.get("type")
 
-            print(f"[{client_uuid}] {data}")
+            data = message.get("data")
+
+            print(f"[{client_uuid}] {message}")
 
             match messageType:
                 case "HELLO":
@@ -52,6 +54,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                     await handle_session_list_request(client_uuid)
                     print("SESSION_LIST_REQ")
                 case "SESSION_CREATE":
+                    await handle_session_create(client_uuid, data)
                     print("SESSION_CREATE")
                 case "SESSION_JOIN":
                     print("SESSION_JOIN")
@@ -77,6 +80,7 @@ async def handle_hello(websocket: WebSocket, client_uuid: str, data):
     async with clients_lock:
         clients[client_uuid] = websocket
 
+
 async def handle_session_list_request(client_uuid: str):
     async with clients_lock:
         websocket = clients.get(client_uuid)
@@ -92,9 +96,30 @@ async def handle_session_list_request(client_uuid: str):
         # send list data (JSON format)
         await websocket.send_json({
             "type": "SESSION_LIST_RES",
-            "sessions": session_data
+            "data": session_data
         })
         print(f"[SUCCESS]   Send session list to {client_uuid}")
     except Exception as e:
         print(f"[ERROR]  Failed to send session list to {client_uuid}: {e}")
         
+
+async def handle_session_create(client_uuid: str, session_name: str):
+    async with clients_lock:
+        websocket = clients.get(client_uuid)
+
+    if not websocket:
+        print(f"[ERROR]  {client_uuid} not found..")
+        return 
+    
+    try:
+        # session 생성
+        new_session = await manager.createSession(client_uuid, session_name)
+
+        # send list data (JSON format)
+        await websocket.send_json({
+            "type": "SESSION_CREATED",
+            "data": new_session.sessionId
+        })
+        print(f"[SUCCESS]   Session Created for {client_uuid}: {session_name}")
+    except Exception as e:
+        print(f"[ERROR]  Failed to create session for {client_uuid}: {e}")
