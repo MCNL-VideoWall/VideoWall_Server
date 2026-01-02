@@ -1,11 +1,12 @@
 import cv2
+import numpy as np
 from typing import Dict
 
 
 def capture_marker(session: Dict[int, any]):
     targets = sorted(list(session.keys()))
     # 인식할 마커 개수
-    print(f"[CAPTURE_MARKER] WebCam 실행 : Find {len(targets)} markers..")
+    print(f"[CAPTURE_MARKER]  WebCam 실행 : Find {len(targets)} markers..")
     print(f"          Marker ID: {targets}")
 
     cap = cv2.VideoCapture(0)   # PC 연결 WebCam 열기
@@ -74,4 +75,72 @@ def capture_marker(session: Dict[int, any]):
     cap.release()
     cv2.destroyAllWindows()
     return captured_frame, final_corners, final_ids
+
+
+def analyze_marker(frames, corners, ids):
+    print("[ANALYZE_MARKER]  START.")
+
+    if ids is None or len(ids) == 0:
+        print("[ERROR]  No markers..")
+        return None
+    
+    # save marker and corner information
+    markers_info = []
+    corners_list = []
+    for i, marker_id in enumerate(ids):
+        marker_corners = corners[i][0]
+        markers_info.append({
+            'id': int(marker_id[0]),
+            'corners': marker_corners
+        })
+        corners_list.append(marker_corners)
+    
+    # STEP 1 : 2D 전체 경계 상자 계산
+    try:
+        all_points = np.vstack(corners_list)
+        total_min_x = np.min(all_points[:, 0])
+        total_min_y = np.min(all_points[:, 1])
+        total_max_x = np.max(all_points[:, 0])
+        total_max_y = np.max(all_points[:, 1])
+    except ValueError:
+        print("[ERROR]  No marker information..")
+        return None
+    
+    total_wall_width = total_max_x - total_min_x
+    total_wall_height = total_max_y - total_min_y
+
+    if total_wall_width == 0 or total_wall_height == 0:
+        print("[ERROR]  The area is zero..")
+        return None
+    
+    wall_aspect_ratio = float(total_wall_width / total_wall_height)
+    print(f"{total_wall_width}x{total_wall_height} (Ratio: {wall_aspect_ratio:.2f})")
+
+
+    # STEP 2 : 모서리 좌표 게산
+    layout = []
+
+    for info in markers_info:
+
+        normalized_corners = []
+        for point in markers_info['corners']:
+        
+            # X, Y 정규화
+            norm_x = (point[0] - total_min_x) / total_wall_width
+            norm_y = (point[1] - total_min_y) / total_wall_height
+
+            # Y축 불일치 해결
+            flipped_norm_y = 1.0 - norm_y
+
+            normalized_corners.append({'x': float(norm_x), 'y': float(flipped_norm_y)})
+
+        layout.append({
+            "id": info['id'],
+            "relative_corners": normalized_corners
+        })
+    
+    json_file = {"layout": layout, "wall_aspect_ratio": wall_aspect_ratio}
+    print("Analyze complete")
+
+    return json_file
         
