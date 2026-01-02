@@ -9,16 +9,29 @@ def run_udp_server(host: str = "0.0.0.0", port: int = 65535):
                         format="%(asctime)s [%(levelname)s] %(message)s")
     logger = logging.getLogger("UDP_Server")
 
-    udp_server_sock = socket.socket(
-        family=socket.AF_INET,
-        type=socket.SOCK_DGRAM
-    )
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_server_sock:
+            # set socket option REUSEADDR
+            udp_server_sock.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    udp_server_sock.bind((host, port))
+            try:
+                udp_server_sock.bind((host, port))
+            except PermissionError:
+                logger.error(f"Permission denied: Cannot use port {port}.")
+                return
+            except OSError as e:
+                logger.error(f"bind() error: {e}")
+                return
 
-    while True:
-        data, addr = udp_server_sock.recvfrom(100)
+    except Exception as e:
+        logger.critical(f"UDP Server error: {e}")
 
-        if data.decode().strip() == "VIDEO_WALL_CONNECT_REQUEST":
-            udp_server_sock.sendto(
-                "VIDEO_WALL_CONNECT_RESPONSE".encode(), addr)
+        # udp_server_sock.bind((host, port))
+
+        # while True:
+        #     data, addr = udp_server_sock.recvfrom(100)
+
+        #     if data.decode().strip() == "VIDEO_WALL_CONNECT_REQUEST":
+        #         udp_server_sock.sendto(
+        #             "VIDEO_WALL_CONNECT_RESPONSE".encode(), addr)
