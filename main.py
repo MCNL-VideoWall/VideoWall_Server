@@ -70,4 +70,5 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
 
 
 async def handle_hello(websocket: WebSocket, client_uuid: str, data):
-    clients[client_uuid] = websocket
+    async with clients_lock:
+        clients[client_uuid] = websocket
