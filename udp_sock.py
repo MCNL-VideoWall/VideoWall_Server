@@ -29,13 +29,6 @@ def run_udp_server(host: str = "0.0.0.0", port: int = 65535):
     except Exception as e:
         logger.critical(f"UDP Server error: {e}")
 
-        # while True:
-        #     data, addr = udp_server_sock.recvfrom(100)
-
-        #     if data.decode().strip() == "VIDEO_WALL_CONNECT_REQUEST":
-        #         udp_server_sock.sendto(
-        #             "VIDEO_WALL_CONNECT_RESPONSE".encode(), addr)
-
 
 def recvPacket(sock: socket.socket, logger: logging.Logger):
     while True:
@@ -43,3 +36,17 @@ def recvPacket(sock: socket.socket, logger: logging.Logger):
             data, addr = sock.recvfrom(100)
         except Exception as e:
             logger.error(f"Packet error: {e}")
+
+        handlePacket(sock, data, addr, logger)
+
+
+def handlePacket(sock: socket.socket, data: bytes, addr, logger: logging.Logger):
+    try:
+        message = data.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        logger.warning(f"data format is not utf-8. addr:{addr}")
+        return
+
+    if message == "VIDEO_WALL_CONNECT_REQUEST":
+        sock.sendto("VIDEO_WALL_CONNECT_RESPONSE", addr)
+        logger.info(f"Responded to {addr}")
