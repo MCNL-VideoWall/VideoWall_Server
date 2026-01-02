@@ -9,7 +9,7 @@ import asyncio
 
 clients: Dict[str, WebSocket] = {}
 clients_lock = asyncio.Lock()
-
+manager = session.SessionManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,6 +49,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                 case "HELLO":
                     await handle_hello(websocket, client_uuid)
                 case "SESSION_LIST_REQ":
+                    await handle_session_list_response(client_uuid)
                     print("SESSION_LIST_REQ")
                 case "SESSION_CREATE":
                     print("SESSION_CREATE")
@@ -75,3 +76,25 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
 async def handle_hello(websocket: WebSocket, client_uuid: str, data):
     async with clients_lock:
         clients[client_uuid] = websocket
+
+async def handle_session_list_response(client_uuid: str):
+    async with clients_lock:
+        websocket = clients.get(client_uuid)
+
+    if not websocket:
+        print(f"[ERROR]  {client_uuid} not found..")
+        return 
+    
+    try:
+        # get session list
+        session_data = manager.getSessionList()        
+
+        # send list data (JSON format)
+        await websocket.send_json({
+            "type": "SESSION_LIST_RES",
+            "sessions": session_data
+        })
+        print(f"[SUCCESS]   Send session list to {client_uuid}")
+    except Exception as e:
+        print(f"[ERROR]  Failed to send session list to {client_uuid}: {e}")
+        

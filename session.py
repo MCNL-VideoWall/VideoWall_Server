@@ -1,34 +1,44 @@
-from fastapi import WebSocket
-from typing import Dict
+from typing import Dict, List
+import asyncio
 
 # 1. Session class
 class Session:
 
-    def __init__(self, sessionId: int, sessionName: str):
+    def __init__(self, sessionId: str, sessionName: str):
         self.sessionId = sessionId
         self.name = sessionName
-        self.slot: int = 1024
-        self.clients: Dict[int, WebSocket] = {}
+        self.clients: Dict[str, int] = {}  # uuid : marker id
 
 
 # 2. Session Manager class
 class SessionManager:
 
     def __init__(self):
-        self.sessionList: Dict[int, Session] = {}   # HostId, Session
+        self.sessionList: List[Session] = []
+        self.managerLock = asyncio.Lock()   # session manager lock
 
-    def createSession(self, hostId: int, name: str) -> Session:
-        newSession = Session(sessionId=hostId, sessionName=name)
-        self.sessionList[hostId] = newSession
-        return newSession
+    async def createSession(self, hostId: int, name: str) -> Session:
+        async with self.managerLock:
+            newSession = Session(sessionId=hostId, sessionName=name)
+            self.sessionList.append(newSession)
+            return newSession
 
-    def getSessionList(self):
-        result = []
-        for session in self.sessionList.values():
-            result.append({
-                "sessionId": session.sessionId,
-                "sessionName": session.name,
-                "currentClients": len(session.Clients),
-                "maxSlots": session.slot
-            })
-        return result
+    async def getSessionList(self):
+        async with self.managerLock:
+            result = []
+            for session in self.sessionList:
+
+                clients_info = []
+                for uuid, m_id in session.clients.items():
+                    clients_info.append({
+                        "uuid": uuid,
+                        "markerId": m_id
+                    })
+
+                result.append({
+                    "sessionId": session.sessionId,
+                    "sessionName": session.name,
+                    "currentClientCount": len(session.clients),
+                    "clients": clients_info
+                })
+            return result
