@@ -34,10 +34,9 @@ def recvPacket(sock: socket.socket, logger: logging.Logger):
     while True:
         try:
             data, addr = sock.recvfrom(100)
+            handlePacket(sock, data, addr, logger)
         except Exception as e:
             logger.error(f"Packet error: {e}")
-
-        handlePacket(sock, data, addr, logger)
 
 
 def handlePacket(sock: socket.socket, data: bytes, addr, logger: logging.Logger):
