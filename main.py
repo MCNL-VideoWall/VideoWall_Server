@@ -45,6 +45,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
 
             match messageType:
                 case "HELLO":
+                    handle_hello(websocket, client_uuid)
                     break
                 case "SESSION_LIST_REQ":
                     break
@@ -64,3 +65,8 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     finally:
         # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
         # TODO: Client Dict에서 해당 client id 제거
+        print(f"Disconnection routine {client_uuid}")
+
+
+async def handle_hello(websocket: WebSocket, client_uuid: str, data):
+    clients[client_uuid] = websocket
