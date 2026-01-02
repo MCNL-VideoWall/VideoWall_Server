@@ -4,9 +4,11 @@ import multiprocessing
 from udp_sock import run_udp_server
 import session
 from typing import Dict
+import asyncio
 
 
 clients: Dict[str, WebSocket] = {}
+clients_lock = asyncio.Lock()
 
 
 @asynccontextmanager
@@ -45,28 +47,31 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
 
             match messageType:
                 case "HELLO":
-                    handle_hello(websocket, client_uuid)
-                    break
+                    await handle_hello(websocket, client_uuid)
                 case "SESSION_LIST_REQ":
-                    break
+                    print("SESSION_LIST_REQ")
                 case "SESSION_CREATE":
-                    break
+                    print("SESSION_CREATE")
                 case "SESSION_JOIN":
-                    break
+                    print("SESSION_JOIN")
                 case "SESSION_LEAVE":
-                    break
+                    print("SESSION_LEAVE")
                 case "START":
-                    break
+                    print("START")
                 case _:
-                    break
+                    print("UNKNOWN")
 
     except Exception as e:
         print(f"Connection closed: {e}")
     finally:
         # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
-        # TODO: Client Dict에서 해당 client id 제거
+
+        async with clients_lock:
+            del clients[client_uuid]
+
         print(f"Disconnection routine {client_uuid}")
 
 
 async def handle_hello(websocket: WebSocket, client_uuid: str, data):
-    clients[client_uuid] = websocket
+    async with clients_lock:
+        clients[client_uuid] = websocket
