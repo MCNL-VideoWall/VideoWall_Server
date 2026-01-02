@@ -41,6 +41,8 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
             data = await websocket.receive_json()
             messageType = data.get("type")
 
+            print(f"[{client_uuid}] {data}")
+
             match messageType:
                 case "HELLO":
                     break
