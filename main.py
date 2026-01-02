@@ -35,6 +35,33 @@ app = FastAPI(lifespan=lifespan)
 @app.websocket("/ws/{client_uuid}")
 async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            messageType = data.get("type")
+
+            match messageType:
+                case "HELLO":
+                    break
+                case "SESSION_LIST_REQ":
+                    break
+                case "SESSION_CREATE":
+                    break
+                case "SESSION_JOIN":
+                    break
+                case "SESSION_LEAVE":
+                    break
+                case "START":
+                    break
+                case _:
+                    break
+
+    except Exception as e:
+        print(f"Connection closed: {e}")
+    finally:
+        # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
+
+        # while True:
+        #     data = await websocket.receive_text()
+        #     await websocket.send_text(f"Message text was: {data}")
