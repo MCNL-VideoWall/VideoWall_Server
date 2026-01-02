@@ -4,9 +4,11 @@ import multiprocessing
 from udp_sock import run_udp_server
 import session
 from typing import Dict
+import asyncio
 
 
 clients: Dict[str, WebSocket] = {}
+clients_lock = asyncio.Lock()
 
 
 @asynccontextmanager
