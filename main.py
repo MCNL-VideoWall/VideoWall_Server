@@ -63,7 +63,4 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
         print(f"Connection closed: {e}")
     finally:
         # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
-
-        # while True:
-        #     data = await websocket.receive_text()
-        #     await websocket.send_text(f"Message text was: {data}")
+        # TODO: Client Dict에서 해당 client id 제거
