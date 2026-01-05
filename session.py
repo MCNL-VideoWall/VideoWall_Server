@@ -9,6 +9,12 @@ class Session:
         self.name = sessionName
         self.clients: Dict[str, int] = {}  # uuid : marker id
 
+    def deleteClient(self, clientsId: str) -> bool:
+        if clientsId in self.clients:
+            self.clients.pop(clientsId,None)
+            return True
+        return False
+
 
 # 2. Session Manager class
 class SessionManager:
@@ -42,3 +48,4 @@ class SessionManager:
                     "clients": clients_info
                 })
             return result
+
