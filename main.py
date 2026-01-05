@@ -58,7 +58,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                     await handle_session_create(client_uuid, data)
                     print("SESSION_CREATE")
                 case "SESSION_JOIN":
-                    await handle_session_join(client_uuid, data)
+                    await handle_session_join(websocket, client_uuid, data)
                     print("SESSION_JOIN")
                 case "SESSION_LEAVE":
                     print("SESSION_LEAVE")
@@ -127,10 +127,7 @@ async def handle_session_create(client_uuid: str, session_name: str):
         print(f"[ERROR]  Failed to create session for {client_uuid}: {e}")
 
 
-async def handle_session_join(client_uuid: str, session_id: str):
-    async with clients_lock:
-        websocket = clients.get(client_uuid)
-
+async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id: str):
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
         return
