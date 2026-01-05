@@ -62,3 +62,10 @@ class SessionManager:
                     return True
 
             return False
+
+    async def getSessionBySessionId(self, session_id: str) -> Session | None:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.sessionId == session_id:
+                    return session
+            return None
