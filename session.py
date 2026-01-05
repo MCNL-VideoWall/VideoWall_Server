@@ -12,6 +12,12 @@ class Session:
         self.clients: Dict[str, int] = {}  # uuid : marker id
         self.currClientCount: int = 0
 
+    def deleteClient(self, clientsId: str) -> bool:
+        if clientsId in self.clients:
+            self.clients.pop(clientsId, None)
+            return True
+        return False
+
 
 # 2. Session Manager class
 class SessionManager:
@@ -68,3 +74,10 @@ class SessionManager:
                 if session.sessionId == session_id:
                     return session
             return None
+
+    async def leaveSession(self, clientId: str) -> bool:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.deleteClient(clientId):  # Delete 성공 시
+                    return True
+            return False    # Delete 실패 시

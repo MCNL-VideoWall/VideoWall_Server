@@ -61,6 +61,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                     await handle_session_join(websocket, client_uuid, data)
                     print("SESSION_JOIN")
                 case "SESSION_LEAVE":
+                    await handle_session_leave(client_uuid)
                     print("SESSION_LEAVE")
                 case "START":
                     print("START")
@@ -155,3 +156,12 @@ async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id
 
     except Exception as e:
         print(f"[ERROR]  Failed to join the session  {client_uuid}: {e}")
+
+
+async def handle_session_leave(client_uuid: str):
+    # 해당 Client가 특정 Session 내에 존재하는 경우
+    if await manager.leaveSession(client_uuid):
+        print(
+            f"[SUCCESS]   {client_uuid} has been removed from their session.")
+    else:
+        print(f"[NOTICE]   {client_uuid} was not in any session.")
