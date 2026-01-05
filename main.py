@@ -133,7 +133,9 @@ async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id
         return
 
     try:
-        if await manager.isSessionExist(session_id):
+        session = await manager.getSessionBySessionId(session_id)
+
+        if session:
             manager.joinSession(session_id, client_uuid)
             # TODO: Marker ID, Session List 보내기
             # await websocket.send_json({
