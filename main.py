@@ -52,10 +52,10 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                 case "HELLO":
                     await handle_hello(websocket, client_uuid)
                 case "SESSION_LIST_REQ":
-                    await handle_session_list_request(client_uuid)
+                    await handle_session_list_request(websocket, client_uuid)
                     print("SESSION_LIST_REQ")
                 case "SESSION_CREATE":
-                    await handle_session_create(client_uuid, data)
+                    await handle_session_create(websocket, client_uuid, data)
                     print("SESSION_CREATE")
                 case "SESSION_JOIN":
                     await handle_session_join(websocket, client_uuid, data)
@@ -79,15 +79,12 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
         print(f"Disconnection routine {client_uuid}")
 
 
-async def handle_hello(websocket: WebSocket, client_uuid: str, data):
+async def handle_hello(websocket: WebSocket | None, client_uuid: str, data):
     async with clients_lock:
         clients[client_uuid] = websocket
 
 
-async def handle_session_list_request(client_uuid: str):
-    async with clients_lock:
-        websocket = clients.get(client_uuid)
-
+async def handle_session_list_request(websocket: WebSocket | None, client_uuid: str):
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
         return
@@ -106,10 +103,7 @@ async def handle_session_list_request(client_uuid: str):
         print(f"[ERROR]  Failed to send session list to {client_uuid}: {e}")
 
 
-async def handle_session_create(client_uuid: str, session_name: str):
-    async with clients_lock:
-        websocket = clients.get(client_uuid)
-
+async def handle_session_create(websocket: WebSocket | None, client_uuid: str, session_name: str):
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
         return
@@ -128,7 +122,7 @@ async def handle_session_create(client_uuid: str, session_name: str):
         print(f"[ERROR]  Failed to create session for {client_uuid}: {e}")
 
 
-async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id: str):
+async def handle_session_join(websocket: WebSocket | None, client_uuid: str, session_id: str):
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
         return
