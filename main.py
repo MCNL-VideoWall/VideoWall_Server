@@ -137,11 +137,17 @@ async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id
 
         if session:
             manager.joinSession(session_id, client_uuid)
-            # TODO: Marker ID, Session List 보내기
-            # await websocket.send_json({
-            #     "type": "SESSION_JOINED",
-            #     "data":
-            # })
+
+            await websocket.send_json(
+                {
+                    "type": "SESSION_JOINED",
+                    "data": {
+                        "ClientMarkerID": session.currClientCount,
+                        "SessionList": manager.getSessionList()
+                    }
+                }
+            )
+
             print("[JOIN]    Success to join this section")
         else:
             print(f"[ERROR]  This session does not exist.. [{client_uuid}]")
