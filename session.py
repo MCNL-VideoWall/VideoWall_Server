@@ -2,6 +2,8 @@ from typing import Dict, List
 import asyncio
 
 # 1. Session class
+
+
 class Session:
 
     def __init__(self, sessionId: str, sessionName: str):
@@ -42,20 +44,19 @@ class SessionManager:
                     "clients": clients_info
                 })
             return result
-        
+
     async def isSessionExist(self, session_id: str) -> bool:
         async with self.managerLock:
             for session in self.sessionList:
                 if session.sessionId == session_id:
                     return True
             return False
-        
+
     async def joinSession(self, session_id: str, client_id: str) -> bool:
         async with self.managerLock:
             for session in self.sessionList:
                 if session.sessionId == session_id:
                     session.clients[client_id] = len(session.clients)
                     return True
-                
+
             return False
-            
