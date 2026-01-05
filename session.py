@@ -10,6 +10,7 @@ class Session:
         self.sessionId = sessionId
         self.name = sessionName
         self.clients: Dict[str, int] = {}  # uuid : marker id
+        self.currClientCount: int = 0
 
 
 # 2. Session Manager class
@@ -57,6 +58,7 @@ class SessionManager:
             for session in self.sessionList:
                 if session.sessionId == session_id:
                     session.clients[client_id] = len(session.clients)
+                    session.currClientCount += 1
                     return True
 
             return False
