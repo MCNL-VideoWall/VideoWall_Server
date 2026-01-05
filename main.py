@@ -11,6 +11,7 @@ clients: Dict[str, WebSocket] = {}
 clients_lock = asyncio.Lock()
 manager = session.SessionManager()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Server Startup Routine
@@ -88,11 +89,11 @@ async def handle_session_list_request(client_uuid: str):
 
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
-        return 
-    
+        return
+
     try:
         # get session list
-        session_data = manager.getSessionList()        
+        session_data = manager.getSessionList()
 
         # send list data (JSON format)
         await websocket.send_json({
@@ -102,7 +103,7 @@ async def handle_session_list_request(client_uuid: str):
         print(f"[SUCCESS]   Send session list to {client_uuid}")
     except Exception as e:
         print(f"[ERROR]  Failed to send session list to {client_uuid}: {e}")
-        
+
 
 async def handle_session_create(client_uuid: str, session_name: str):
     async with clients_lock:
@@ -110,8 +111,8 @@ async def handle_session_create(client_uuid: str, session_name: str):
 
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
-        return 
-    
+        return
+
     try:
         # session 생성
         new_session = await manager.createSession(client_uuid, session_name)
@@ -132,15 +133,15 @@ async def handle_session_join(client_uuid: str, session_id: str):
 
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
-        return 
-    
+        return
+
     try:
         if await manager.isSessionExist(session_id):
             manager.joinSession(session_id, client_uuid)
             # TODO: Marker ID, Session List 보내기
             # await websocket.send_json({
             #     "type": "SESSION_JOINED",
-            #     "data": 
+            #     "data":
             # })
             print("[JOIN]    Success to join this section")
         else:
