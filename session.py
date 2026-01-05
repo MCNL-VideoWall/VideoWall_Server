@@ -2,16 +2,19 @@ from typing import Dict, List
 import asyncio
 
 # 1. Session class
+
+
 class Session:
 
     def __init__(self, sessionId: str, sessionName: str):
         self.sessionId = sessionId
         self.name = sessionName
         self.clients: Dict[str, int] = {}  # uuid : marker id
+        self.currClientCount: int = 0
 
     def deleteClient(self, clientsId: str) -> bool:
         if clientsId in self.clients:
-            self.clients.pop(clientsId,None)
+            self.clients.pop(clientsId, None)
             return True
         return False
 
@@ -49,10 +52,32 @@ class SessionManager:
                 })
             return result
 
+    async def isSessionExist(self, session_id: str) -> bool:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.sessionId == session_id:
+                    return True
+            return False
+
+    async def joinSession(self, session_id: str, client_id: str) -> bool:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.sessionId == session_id:
+                    session.clients[client_id] = len(session.clients)
+                    return True
+
+            return False
+
+    async def getSessionBySessionId(self, session_id: str) -> Session | None:
+        async with self.managerLock:
+            for session in self.sessionList:
+                if session.sessionId == session_id:
+                    return session
+            return None
+
     async def leaveSession(self, clientId: str) -> bool:
         async with self.managerLock:
             for session in self.sessionList:
                 if session.deleteClient(clientId):  # Delete 성공 시
                     return True
             return False    # Delete 실패 시
-

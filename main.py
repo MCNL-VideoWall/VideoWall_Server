@@ -11,6 +11,7 @@ clients: Dict[str, WebSocket] = {}
 clients_lock = asyncio.Lock()
 manager = session.SessionManager()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Server Startup Routine
@@ -57,6 +58,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
                     await handle_session_create(client_uuid, data)
                     print("SESSION_CREATE")
                 case "SESSION_JOIN":
+                    await handle_session_join(websocket, client_uuid, data)
                     print("SESSION_JOIN")
                 case "SESSION_LEAVE":
                     await handle_session_leave(client_uuid)
@@ -88,11 +90,11 @@ async def handle_session_list_request(client_uuid: str):
 
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
-        return 
-    
+        return
+
     try:
         # get session list
-        session_data = manager.getSessionList()        
+        session_data = manager.getSessionList()
 
         # send list data (JSON format)
         await websocket.send_json({
@@ -102,7 +104,7 @@ async def handle_session_list_request(client_uuid: str):
         print(f"[SUCCESS]   Send session list to {client_uuid}")
     except Exception as e:
         print(f"[ERROR]  Failed to send session list to {client_uuid}: {e}")
-        
+
 
 async def handle_session_create(client_uuid: str, session_name: str):
     async with clients_lock:
@@ -110,8 +112,8 @@ async def handle_session_create(client_uuid: str, session_name: str):
 
     if not websocket:
         print(f"[ERROR]  {client_uuid} not found..")
-        return 
-    
+        return
+
     try:
         # session 생성
         new_session = await manager.createSession(client_uuid, session_name)
@@ -125,9 +127,41 @@ async def handle_session_create(client_uuid: str, session_name: str):
     except Exception as e:
         print(f"[ERROR]  Failed to create session for {client_uuid}: {e}")
 
+
+async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id: str):
+    if not websocket:
+        print(f"[ERROR]  {client_uuid} not found..")
+        return
+
+    try:
+        session = await manager.getSessionBySessionId(session_id)
+
+        if session:
+            manager.joinSession(session_id, client_uuid)
+
+            await websocket.send_json(
+                {
+                    "type": "SESSION_JOINED",
+                    "data": {
+                        "ClientMarkerID": session.currClientCount,
+                        "SessionList": manager.getSessionList()
+                    }
+                }
+            )
+            session.currClientCount += 1
+
+            print("[JOIN]    Success to join this section")
+        else:
+            print(f"[ERROR]  This session does not exist.. [{client_uuid}]")
+
+    except Exception as e:
+        print(f"[ERROR]  Failed to join the session  {client_uuid}: {e}")
+
+
 async def handle_session_leave(client_uuid: str):
     # 해당 Client가 특정 Session 내에 존재하는 경우
     if await manager.leaveSession(client_uuid):
-        print(f"[SUCCESS]   {client_uuid} has been removed from their session.")
+        print(
+            f"[SUCCESS]   {client_uuid} has been removed from their session.")
     else:
         print(f"[NOTICE]   {client_uuid} was not in any session.")
