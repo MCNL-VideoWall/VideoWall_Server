@@ -147,6 +147,7 @@ async def handle_session_join(websocket: WebSocket, client_uuid: str, session_id
                     }
                 }
             )
+            session.currClientCount += 1
 
             print("[JOIN]    Success to join this section")
         else:
