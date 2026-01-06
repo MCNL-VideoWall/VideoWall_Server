@@ -71,10 +71,11 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     except Exception as e:
         print(f"Connection closed: {e}")
     finally:
-        # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
 
         async with clients_lock:
             clients.pop(client_uuid, None)
+
+        await manager.leaveSession(client_uuid)
 
         print(f"Disconnection routine {client_uuid}")
 
