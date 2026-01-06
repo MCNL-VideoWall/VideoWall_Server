@@ -10,6 +10,10 @@ def captureMarker(session: Session):
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(message)s")
     logger = logging.getLogger("Capture_ArUco")
+
+    print(
+        f"[CAPTURE_MARKER]  WebCam 실행 : Find {len(session.clients)} markers..")
+    print(f"          Marker ID: {sorted(list(session.clients.values()))}")
 def capture_marker(session: Dict[int, any]):
     targets = sorted(list(session.keys()))
     # 인식할 마커 개수
