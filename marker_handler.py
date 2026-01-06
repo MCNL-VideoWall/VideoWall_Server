@@ -11,17 +11,18 @@ def captureMarker(session: Session):
                         format="%(asctime)s [%(levelname)s] %(message)s")
     logger = logging.getLogger("Capture_ArUco")
 
-    print(
-        f"[CAPTURE_MARKER]  WebCam 실행 : Find {len(session.clients)} markers..")
-    print(f"          Marker ID: {sorted(list(session.clients.values()))}")
+    logger.info(f"[SessionID:{session.sessionId}] WebCam 실행")
+    logger.info(
+        f"          Marker ID: {sorted(list(session.clients.values()))}")
 
     try:
         cap = cv2.VideoCapture(0)
 
         if not cap.isOpened():
-            raise ConnectionError("Camera Not Found")
+            raise ConnectionError("Connection Error: Camera not found.")
 
     except ConnectionError as e:
+        logger.error(f"{e}")
 
 
 def capture_marker(session: Dict[int, any]):
