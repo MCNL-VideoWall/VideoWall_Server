@@ -14,6 +14,16 @@ def captureMarker(session: Session):
     print(
         f"[CAPTURE_MARKER]  WebCam 실행 : Find {len(session.clients)} markers..")
     print(f"          Marker ID: {sorted(list(session.clients.values()))}")
+
+    try:
+        cap = cv2.VideoCapture(0)
+
+        if not cap.isOpened():
+            raise ConnectionError("Camera Not Found")
+
+    except ConnectionError as e:
+
+
 def capture_marker(session: Dict[int, any]):
     targets = sorted(list(session.keys()))
     # 인식할 마커 개수
@@ -24,7 +34,7 @@ def capture_marker(session: Dict[int, any]):
     if not cap.isOpened():
         print("[ERROR]  Failed to open camera..")
         return None, None, None
-    
+
     # ArUco 검출기 설정
     aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
     aruco_params = cv2.aruco.DetectorParameters()
