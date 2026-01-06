@@ -1,8 +1,15 @@
 import cv2
 import numpy as np
 from typing import Dict
+from session import Session
+import logging
 
 
+def captureMarker(session: Session):
+    # FastAPI 프로세스에서 ArUco마커 캡쳐 흐름의 로그 출력을 위한 로거 획득
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s [%(levelname)s] %(message)s")
+    logger = logging.getLogger("Capture_ArUco")
 def capture_marker(session: Dict[int, any]):
     targets = sorted(list(session.keys()))
     # 인식할 마커 개수
