@@ -74,7 +74,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
         # TODO: Session Manager를 통해 해당 client id가 속해있는 session에서 제거
 
         async with clients_lock:
-            del clients[client_uuid]
+            clients.pop(client_uuid, None)
 
         print(f"Disconnection routine {client_uuid}")
 
