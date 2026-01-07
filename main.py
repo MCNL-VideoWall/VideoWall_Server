@@ -4,6 +4,7 @@ import multiprocessing
 from udp_sock import run_udp_server
 from typing import Dict, Tuple
 import asyncio
+from marker_handler import getArucoList
 
 marker_count = 0
 clients: Dict[str, Tuple[int, WebSocket]] = {}
@@ -38,14 +39,18 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     await websocket.accept()
     async with clients_lock:
         clients[client_uuid] = (marker_count, websocket)
+        client_marker_id = marker_count
+        marker_count += 1
 
-    print(f"Connected: {client_uuid} (MARKER ID: {marker_count})")
-    marker_count += 1
+    print(f"Connected: {client_uuid} (MARKER ID: {client_marker_id})")
 
     try:
         websocket.send_json({
             "type": "WELCOME",
-            # TODO: Marker ID 생성 및 비트맵 생성하여 json에 포함
+            "data": {
+                "marker_id": client_marker_id,
+                "aruco_bitmap": getArucoList(client_marker_id)
+            }
             # TODO: Multicast IP 담아서 보내기
         })
 
