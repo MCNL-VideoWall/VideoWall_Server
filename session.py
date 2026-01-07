@@ -75,9 +75,9 @@ class SessionManager:
                     return session
             return None
 
-    async def leaveSession(self, clientId: str) -> bool:
+    async def leaveSession(self, client_uuid: str) -> bool:
         async with self.managerLock:
             for session in self.sessionList:
-                if session.deleteClient(clientId):  # Delete 성공 시
+                if session.deleteClient(client_uuid):  # Delete 성공 시
                     return True
             return False    # Delete 실패 시
