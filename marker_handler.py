@@ -41,6 +41,16 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
             if not curr_ids:
                 raise RuntimeError("No Id existed")
 
+            retrieve, frame = cap.read()
+            if not retrieve:
+                break
+
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            corners, ids, _ = detector.detectMarkers(gray_frame)
+
+            marker_count = len(ids) if ids is not None else 0  # len(ids) | 0
+            status_text = f"Found {marker_count} / {len(curr_ids)} markers"
+
     except ConnectionError as e:
         logger.error(f"{e}")
     except RuntimeError as e:
