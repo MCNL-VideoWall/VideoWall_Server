@@ -59,3 +59,16 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
             clients.pop(client_uuid, None)
 
         print(f"Disconnection routine {client_uuid}")
+
+
+async def show_marker():
+    async with clients_lock:
+        sockets = [ws for _, ws in clients.value()]  # Tuple에서 websocket만 추출
+
+    for ws in sockets:
+        try:
+            await ws.send_json({
+                "type": "SHOW_MARKER"
+            })
+        except:
+            pass
