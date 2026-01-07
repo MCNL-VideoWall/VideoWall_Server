@@ -184,7 +184,7 @@ def analyze_marker(frames, corners, ids):
     return json_file
 
 
-def getArucoList(marker_id: int, size: int = 6):
+def getArucoList(marker_id: int, size: int = 8):
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
 
     marker_img = cv2.aruco.generateImageMarker(dictionary, marker_id, size)
