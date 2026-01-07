@@ -36,6 +36,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.websocket("/ws/{client_uuid}")
 async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
+    global marker_count
     await websocket.accept()
     async with clients_lock:
         clients[client_uuid] = (marker_count, websocket)
