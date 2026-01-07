@@ -1,8 +1,15 @@
 import cv2
 import numpy as np
 from typing import Dict, Tuple
+from enum import Enum
 import logging
 from fastapi import WebSocket
+
+
+class Color(Enum):
+    RED = (0, 0, 255)
+    GREEN = (0, 255, 0)
+    YELLOW = (0.255, 255)
 
 
 def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
