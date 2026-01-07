@@ -1,19 +1,20 @@
 import cv2
 import numpy as np
-from typing import Dict
-from session import Session
+from typing import Dict, Tuple
 import logging
+from fastapi import WebSocket
 
 
-def captureMarker(session: Session):
+def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
     # FastAPI 프로세스에서 ArUco마커 캡쳐 흐름의 로그 출력을 위한 로거 획득
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(message)s")
     logger = logging.getLogger("Capture_ArUco")
 
-    logger.info(f"[SessionID:{session.sessionId}] WebCam 실행")
-    logger.info(
-        f"          Marker ID: {sorted(list(session.clients.values()))}")
+    logger.info(f"WebCam 실행")
+
+    marker_id = {info[0] for info in clients.value()}
+    logger.info(f"Marker ID: {marker_id}")
 
     try:
         cap = cv2.VideoCapture(0)
@@ -29,7 +30,7 @@ def captureMarker(session: Session):
         captured_frame, final_corners, final_ids = None, None, None
 
         while True:
-            curr_ids = set(session.clients.values())
+            curr_ids = set(clients.keys())
             if not curr_ids:
                 raise RuntimeError("No Id existed")
 
