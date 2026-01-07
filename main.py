@@ -68,7 +68,7 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
 
 async def show_marker():
     async with clients_lock:
-        sockets = [ws for _, ws in clients.value()]  # Tuple에서 websocket만 추출
+        sockets = [ws for _, ws in clients.values()]  # Tuple에서 websocket만 추출
 
     for ws in sockets:
         try:
