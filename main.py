@@ -1,12 +1,12 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from contextlib import asynccontextmanager
 import multiprocessing
 from udp_sock import run_udp_server
-from typing import Dict
+from typing import Dict, Tuple
 import asyncio
 
-
-clients: Dict[str, WebSocket] = {}
+marker_count = 0
+clients: Dict[str, Tuple[int, WebSocket]] = {}
 clients_lock = asyncio.Lock()
 
 
@@ -37,7 +37,10 @@ app = FastAPI(lifespan=lifespan)
 async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     await websocket.accept()
     async with clients_lock:
-        clients[client_uuid] = websocket
+        clients[client_uuid] = (marker_count, websocket)
+
+    print(f"Connected: {client_uuid} (MARKER ID: {marker_count})")
+    marker_count += 1
 
     try:
         websocket.send_json({
@@ -45,6 +48,9 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
             # TODO: Marker ID 생성 및 비트맵 생성하여 json에 포함
             # TODO: Multicast IP 담아서 보내기
         })
+
+    except WebSocketDisconnect:
+        print(f"WebSocketDisconnect: {client_uuid}")
     except Exception as e:
         print(f"Connection closed: {e}")
     finally:
