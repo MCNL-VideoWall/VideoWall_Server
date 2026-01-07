@@ -38,9 +38,10 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     await websocket.accept()
     async with clients_lock:
         clients[client_uuid] = (marker_count, websocket)
+        client_marker_id = marker_count
+        marker_count += 1
 
-    print(f"Connected: {client_uuid} (MARKER ID: {marker_count})")
-    marker_count += 1
+    print(f"Connected: {client_uuid} (MARKER ID: {client_marker_id})")
 
     try:
         websocket.send_json({
