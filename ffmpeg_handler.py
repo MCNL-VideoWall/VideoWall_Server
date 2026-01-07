@@ -1,10 +1,13 @@
 import ffmpeg
 import subprocess
 import socket
+import threading
 from enum import Enum
 
 
 ffmpegProcess = None
+
+MULTICAST_URL = "udp://224.1.1.1:1234"
 
 
 class Mode(Enum):
@@ -24,9 +27,7 @@ def start_streaming(mode: Mode, video_path: str):
     print(f"mode:{mode}, video:{video_path}")
 
     ip = ipcheck()  # Server IP address
-    url = ""
-    # TODO: MULTICAST_URL & PORT NUM Logic
-    # = f"{MULTICAST_URL}?localaddr={ip}"
+    url = f"{MULTICAST_URL}?localaddr={ip}"
 
     if mode == Mode.SCREEN:
         # SCREEN MODE
@@ -59,10 +60,21 @@ def start_streaming(mode: Mode, video_path: str):
         ffmpegProcess = subprocess.Popen(
             ['ffmpeg'] + args,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
             encoding='utf-8',  # 바이트를 문자열로 자동 변환
             errors='ignore'
         )
+
+        def chean_process(process):
+            process.wait()  # ffmpegProcess 종료까지 대기 (Blocking)
+            global ffmpegProcess
+            if ffmpegProcess == process:    # 다음 스트리밍을 위해 값 비우기
+                ffmpegProcess = None
+
+            print(f"[STREAM]   Terminated FFmpeg. (pid: {process.pid})")
+
+        threading.Thread(target=chean_process,
+                         args=(ffmpegProcess, ), daemon=True).start()   # Threading을 통해 FFmpeg Process 종료 감시
 
     print(f"[STREAM]   Start streaming!")
