@@ -45,14 +45,15 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     print(f"Connected: {client_uuid} (MARKER ID: {client_marker_id})")
 
     try:
-        websocket.send_json({
+        message = {
             "type": "WELCOME",
             "data": {
                 "marker_id": client_marker_id,
                 "aruco_bitmap": getArucoList(client_marker_id)
             }
             # TODO: Multicast IP 담아서 보내기
-        })
+        }
+        await websocket.send_json(message)
 
     except WebSocketDisconnect:
         print(f"WebSocketDisconnect: {client_uuid}")
