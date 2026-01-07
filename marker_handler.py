@@ -19,9 +19,23 @@ def captureMarker(session: Session):
         cap = cv2.VideoCapture(0)
 
         if not cap.isOpened():
+
             raise ConnectionError("Connection Error: Camera not found.")
 
+        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
+        aruco_params = cv2.aruco.DetectorParameters()
+        detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
+
+        captured_frame, final_corners, final_ids = None, None, None
+
+        while True:
+            curr_ids = set(session.clients.values())
+            if not curr_ids:
+                raise RuntimeError("No Id existed")
+
     except ConnectionError as e:
+        logger.error(f"{e}")
+    except RuntimeError as e:
         logger.error(f"{e}")
 
 
@@ -55,10 +69,10 @@ def capture_marker(session: Dict[int, any]):
 
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = detector.detectMarkers(gray_frame)
-        
+
         marker_count = len(ids) if ids is not None else 0
         status_text = f"Found {marker_count} / {len(cur_ids)} markers"
-        color = (0, 0, 255) # default Red : 준비 안됨
+        color = (0, 0, 255)  # default Red : 준비 안됨
 
         # 검증 로직
         if marker_count == len(cur_ids):
@@ -66,11 +80,12 @@ def capture_marker(session: Dict[int, any]):
 
             if found_ids == cur_ids:
                 status_text = "All markers detected."
-                color = (0, 255, 0) # Green : 성공
+                color = (0, 255, 0)  # Green : 성공
 
-                cv2.putText(frame, status_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+                cv2.putText(frame, status_text, (10, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
                 cv2.imshow('Auto Capture & Validation System', frame)
-                cv2.waitKey(500) 
+                cv2.waitKey(500)
 
                 captured_frame = frame.copy()
                 final_corners = corners
@@ -78,10 +93,11 @@ def capture_marker(session: Dict[int, any]):
                 break
             else:
                 status_text = "Mismatch.. Adjusting.."
-                color = (0, 255, 255) # Yellow  : 주의 / 확인 필요
-        
+                color = (0, 255, 255)  # Yellow  : 주의 / 확인 필요
+
         # 화면 표시
-        cv2.putText(frame, status_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+        cv2.putText(frame, status_text, (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
         cv2.imshow('Auto Capture & Validation System', frame)
 
         # key handle
@@ -105,7 +121,7 @@ def analyze_marker(frames, corners, ids):
     if ids is None or len(ids) == 0:
         print("[ERROR]  No markers..")
         return None
-    
+
     # save marker and corner information
     markers_info = []
     corners_list = []
@@ -116,7 +132,7 @@ def analyze_marker(frames, corners, ids):
             'corners': marker_corners
         })
         corners_list.append(marker_corners)
-    
+
     # STEP 1 : 2D 전체 경계 상자 계산
     try:
         all_points = np.vstack(corners_list)
@@ -127,17 +143,16 @@ def analyze_marker(frames, corners, ids):
     except ValueError:
         print("[ERROR]  No marker information..")
         return None
-    
+
     total_wall_width = total_max_x - total_min_x
     total_wall_height = total_max_y - total_min_y
 
     if total_wall_width == 0 or total_wall_height == 0:
         print("[ERROR]  The area is zero..")
         return None
-    
+
     wall_aspect_ratio = float(total_wall_width / total_wall_height)
     print(f"{total_wall_width}x{total_wall_height} (Ratio: {wall_aspect_ratio:.2f})")
-
 
     # STEP 2 : 모서리 좌표 게산
     layout = []
@@ -146,7 +161,7 @@ def analyze_marker(frames, corners, ids):
 
         normalized_corners = []
         for point in markers_info['corners']:
-        
+
             # X, Y 정규화
             norm_x = (point[0] - total_min_x) / total_wall_width
             norm_y = (point[1] - total_min_y) / total_wall_height
@@ -154,15 +169,15 @@ def analyze_marker(frames, corners, ids):
             # Y축 불일치 해결
             flipped_norm_y = 1.0 - norm_y
 
-            normalized_corners.append({'x': float(norm_x), 'y': float(flipped_norm_y)})
+            normalized_corners.append(
+                {'x': float(norm_x), 'y': float(flipped_norm_y)})
 
         layout.append({
             "id": info['id'],
             "relative_corners": normalized_corners
         })
-    
+
     json_file = {"layout": layout, "wall_aspect_ratio": wall_aspect_ratio}
     print("Analyze complete")
 
     return json_file
-        
