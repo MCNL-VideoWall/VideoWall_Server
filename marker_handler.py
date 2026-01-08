@@ -29,62 +29,45 @@ def draw_status(frame, text, color=Color.GREEN.value):
     cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
 
-def captureMarker(expected_ids: set):
-    # FastAPI 프로세스에서 ArUco마커 캡쳐 흐름의 로그 출력을 위한 로거 획득
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s [%(levelname)s] %(message)s")
-    logger = logging.getLogger("Capture_ArUco")
-
-    logger.info(f"WebCam 실행")
-
+def captureFromWebcam(expected_ids: set):
     cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        logger.error("Camera not found")
+    detector = ArucoDetector()
 
-    try:
-        detector = cv2.aruco.ArucoDetector(
-            cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250),
-            cv2.aruco.DetectorParameters())
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-        layout_data = None
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        corners, ids, detected = detector.detectFrame(gray)
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+        if detected == expected_ids:
+            result = run_analysis(corners, ids)
+            draw_status(frame, "ALL DETECTED")
+            cv2.imshow("Calibration", frame)
+            cv2.waitKey(1000)
+            break
+        else:
+            draw_status(
+                frame, f"{len(detected)}/{len(expected_ids)}", (0, 0, 255))
 
-            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            corners, ids, _ = detector.detectMarkers(gray_frame)
+        cv2.imshow("Calibration", frame)
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
 
-            detected_ids = set(ids.flatten()) if ids is not None else set()
+    cap.release()
+    cv2.destroyAllWindows()
+    return result
 
-            # 모든 마커가 일치
-            if detected_ids == expected_ids:
-                layout_data = run_analysis(corners, ids)
 
-                draw_status(frame, "ALL DETECTED", Color.GREEN.value)
-                cv2.imshow("Calibration", frame)
-                cv2.waitKey(1000)
-                break
-            else:
-                draw_status(
-                    frame,
-                    f"Searching {len(detected_ids)} / {len(expected_ids)} markers",
-                    Color.RED.value
-                )
-                cv2.imshow("Calibration", frame)
+def test_captureFromImage(img_path: str):
+    img = cv2.imread(img_path)
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-            if (cv2.waitKey(1) & 0xFF) == 27:           # ESC
-                break
+    detector = ArucoDetector()
+    corners, ids, detected = detector.detectFrame(gray_img)
 
-        cap.release()
-        cv2.destroyAllWindows()
-        return layout_data
-
-    except ConnectionError as e:
-        logger.error(f"{e}")
-    except RuntimeError as e:
-        logger.error(f"{e}")
+    print(run_analysis(corners, ids))
 
 
 def run_analysis(corners, ids):
