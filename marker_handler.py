@@ -42,8 +42,8 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
             if not curr_ids:
                 raise RuntimeError("No Id existed")
 
-            retrieve, frame = cap.read()
-            if not retrieve:
+            ret, frame = cap.read()
+            if not ret:
                 break
 
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
