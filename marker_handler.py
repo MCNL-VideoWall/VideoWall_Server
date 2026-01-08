@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from typing import Dict, Tuple
+from typing import Tuple, Set
 from enum import Enum
 import logging
 from fastapi import WebSocket
@@ -10,6 +10,19 @@ class Color(Enum):
     RED = (0, 0, 255)
     GREEN = (0, 255, 0)
     YELLOW = (0.255, 255)
+
+
+class ArucoDetector:
+    def __init__(self, dictionary=cv2.aruco.DICT_6X6_250):
+        self.detector = cv2.aruco.ArucoDetector(
+            cv2.aruco.getPredefinedDictionary(dictionary),
+            cv2.aruco.DetectorParameters()
+        )
+
+    def detectFrame(self, frame_gray) -> Tuple[list, np.ndarray, Set[int]]:
+        corners, ids, _ = self.detector.detectMarkers(frame_gray)
+        detected_ids = set(ids.flatten()) if ids is not None else set()
+        return corners, ids, detected_ids
 
 
 def draw_status(frame, text, color=Color.GREEN.value):
