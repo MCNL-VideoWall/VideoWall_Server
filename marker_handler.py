@@ -31,9 +31,9 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
     try:
         marker_ids = {info[0] for info in clients.value()}
 
-        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-        aruco_params = cv2.aruco.DetectorParameters()
-        detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
+        detector = cv2.aruco.ArucoDetector(
+            cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250),
+            cv2.aruco.DetectorParameters())
 
         captured_frame, final_corners, final_ids = None, None, None
 
