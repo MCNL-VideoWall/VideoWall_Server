@@ -16,7 +16,7 @@ def draw_status(frame, text, color=Color.GREEN.value):
     cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
 
-def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
+def captureMarker(expected_ids: set):
     # FastAPI 프로세스에서 ArUco마커 캡쳐 흐름의 로그 출력을 위한 로거 획득
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(message)s")
