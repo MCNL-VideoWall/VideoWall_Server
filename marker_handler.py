@@ -43,10 +43,8 @@ def captureMarker(expected_ids: set):
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             corners, ids, _ = detector.detectMarkers(gray_frame)
 
-            marker_count = len(ids) if ids is not None else 0  # len(ids) | 0
             detected_ids = set(ids.flatten()) if ids is not None else set()
 
-            status_text = f"Found {marker_count} / {len(marker_ids)} markers"
 
             color = Color.RED.value  # 폰트 색상
 
