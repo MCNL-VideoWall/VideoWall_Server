@@ -61,15 +61,12 @@ def captureMarker(expected_ids: set):
                 )
                 cv2.imshow("Calibration", frame)
 
-            # Marker 개수 검증
-            if marker_count == len(marker_ids):
-                # ID가 일치하는 지 set 검증
-                if detected_ids == marker_ids:
-                    status_text = "SUCCESS: All marker detected"
-                    color = Color.GREEN.value
-                else:
-                    status_text = "FAIL: Wrong markers detected"
-                    color = Color.YELLOW.value
+            if (cv2.waitKey(1) & 0xFF) == 27:           # ESC
+                break
+
+        cap.release()
+        cv2.destroyAllWindows()
+        return layout_data
 
     except ConnectionError as e:
         logger.error(f"{e}")
