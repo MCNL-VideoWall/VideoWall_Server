@@ -50,8 +50,9 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
             corners, ids, _ = detector.detectMarkers(gray_frame)
 
             marker_count = len(ids) if ids is not None else 0  # len(ids) | 0
-            status_text = f"Found {marker_count} / {len(curr_ids)} markers"
+            detected_ids = set(ids.flatten()) if ids is not None else set()
 
+            status_text = f"Found {marker_count} / {len(marker_ids)} markers"
     except ConnectionError as e:
         logger.error(f"{e}")
     except RuntimeError as e:
