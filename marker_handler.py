@@ -74,6 +74,10 @@ def captureMarker(expected_ids: set):
         logger.error(f"{e}")
 
 
+def run_analysis(corners, ids):
+    return 1
+
+
 def capture_marker(session: Dict[int, any]):
     targets = sorted(list(session.keys()))
     # 인식할 마커 개수
