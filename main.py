@@ -4,7 +4,7 @@ import multiprocessing
 from udp_sock import run_udp_server
 from typing import Dict, Tuple
 import asyncio
-from marker_handler import getArucoList
+from marker_handler import getArucoList, captureMarker
 
 marker_count = 0
 clients: Dict[str, Tuple[int, WebSocket]] = {}
@@ -36,6 +36,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.websocket("/ws/{client_uuid}")
 async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
+    global marker_count
     await websocket.accept()
     async with clients_lock:
         clients[client_uuid] = (marker_count, websocket)
@@ -45,14 +46,15 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
     print(f"Connected: {client_uuid} (MARKER ID: {client_marker_id})")
 
     try:
-        websocket.send_json({
+        message = {
             "type": "WELCOME",
             "data": {
                 "marker_id": client_marker_id,
                 "aruco_bitmap": getArucoList(client_marker_id)
             }
             # TODO: Multicast IP 담아서 보내기
-        })
+        }
+        await websocket.send_json(message)
 
     except WebSocketDisconnect:
         print(f"WebSocketDisconnect: {client_uuid}")
@@ -66,14 +68,19 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
         print(f"Disconnection routine {client_uuid}")
 
 
-async def show_marker():
-    async with clients_lock:
-        sockets = [ws for _, ws in clients.value()]  # Tuple에서 websocket만 추출
+async def start_setup():
+    target_ids = await show_marker()
 
-    for ws in sockets:
-        try:
-            await ws.send_json({
-                "type": "SHOW_MARKER"
-            })
-        except:
-            pass
+    if not target_ids:
+        print("No connected client")
+        return
+
+    layout_data = await asyncio.to_thread(captureMarker, target_ids)
+
+
+async def show_marker() -> set:
+    async with clients_lock:
+        target_ids = {info[0] for info in clients.values()}
+        for _, ws in clients.values():
+            await ws.send_json({"type": "SHOW_MARKER"})
+    return target_ids

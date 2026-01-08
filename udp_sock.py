@@ -47,5 +47,5 @@ def handlePacket(sock: socket.socket, data: bytes, addr, logger: logging.Logger)
         return
 
     if message == "VIDEO_WALL_CONNECT_REQUEST":
-        sock.sendto("VIDEO_WALL_CONNECT_RESPONSE", addr)
+        sock.sendto("VIDEO_WALL_CONNECT_RESPONSE".encode(), addr)
         logger.info(f"Responded to {addr}")
