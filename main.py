@@ -4,7 +4,7 @@ import multiprocessing
 from udp_sock import run_udp_server
 from typing import Dict, Tuple
 import asyncio
-from marker_handler import getArucoList
+from marker_handler import getArucoList, captureMarker
 
 marker_count = 0
 clients: Dict[str, Tuple[int, WebSocket]] = {}
@@ -68,8 +68,19 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
         print(f"Disconnection routine {client_uuid}")
 
 
+async def start_setup():
+    target_ids = await show_marker()
+
+    if not target_ids:
+        print("No connected client")
+        return
+
+    layout_data = await asyncio.to_thread(captureMarker, target_ids)
+
+
 async def show_marker() -> set:
     async with clients_lock:
         target_ids = {info[0] for info in clients.values()}
         for _, ws in clients.values():
             await ws.send_json({"type": "SHOW_MARKER"})
+    return target_ids
