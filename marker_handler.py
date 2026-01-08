@@ -110,3 +110,9 @@ def getArucoList(marker_id: int, size: int = 8):
                    for row in raw_list]
 
     return bitmap_list
+
+
+if __name__ == "__main__":
+    test_captureFromImage("./aruco_test.jpg")
+    result = captureFromWebcam({203, 23, 124, 62, 98, 40})
+    print(result)
