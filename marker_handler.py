@@ -55,6 +55,7 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
             status_text = f"Found {marker_count} / {len(marker_ids)} markers"
 
             color = Color.RED.value  # 폰트 색상
+
             # Marker 개수 검증
             if marker_count == len(marker_ids):
                 # ID가 일치하는 지 set 검증
@@ -64,6 +65,7 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
                 else:
                     status_text = "FAIL: Wrong markers detected"
                     color = Color.YELLOW.value
+
     except ConnectionError as e:
         logger.error(f"{e}")
     except RuntimeError as e:
