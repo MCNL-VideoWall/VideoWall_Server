@@ -75,7 +75,32 @@ def captureMarker(expected_ids: set):
 
 
 def run_analysis(corners, ids):
-    return 1
+    corners_list = [c[0] for c in corners]
+    all_points = np.vstack(corners_list)
+
+    min_x, min_y = np.min(all_points[:, 0]), np.min(all_points[:, 1])
+    max_x, max_y = np.max(all_points[:, 0]), np.max(all_points[:, 1])
+    width, height = max_x - min_x, max_y - min_y
+
+    layout = []
+    for i, m_id in enumerate(ids):
+        # 개별 마커의 4개 모서리 정규화 (Y축 반전 포함)
+        norm_corners = []
+        for p in corners[i][0]:
+            norm_corners.append({
+                'x': float((p[0] - min_x) / width),
+                'y': float(1.0 - (p[1] - min_y) / height)
+            })
+
+        layout.append({
+            "id": int(m_id[0]),
+            "relative_corners": norm_corners
+        })
+
+    return {
+        "layout": layout,
+        "wall_aspect_ratio": float(width / height)
+    }
 
 
 def capture_marker(session: Dict[int, any]):
