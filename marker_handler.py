@@ -29,19 +29,13 @@ def captureMarker(expected_ids: set):
         logger.error("Camera not found")
 
     try:
-        marker_ids = {info[0] for info in clients.value()}
-
         detector = cv2.aruco.ArucoDetector(
             cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250),
             cv2.aruco.DetectorParameters())
 
-        captured_frame, final_corners, final_ids = None, None, None
+        layout_data = None
 
         while True:
-            curr_ids = set(clients.keys())
-            if not curr_ids:
-                raise RuntimeError("No Id existed")
-
             ret, frame = cap.read()
             if not ret:
                 break
