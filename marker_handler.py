@@ -45,8 +45,21 @@ def captureMarker(expected_ids: set):
 
             detected_ids = set(ids.flatten()) if ids is not None else set()
 
+            # 모든 마커가 일치
+            if detected_ids == expected_ids:
+                layout_data = run_analysis(corners, ids)
 
-            color = Color.RED.value  # 폰트 색상
+                draw_status(frame, "ALL DETECTED", Color.GREEN.value)
+                cv2.imshow("Calibration", frame)
+                cv2.waitKey(1000)
+                break
+            else:
+                draw_status(
+                    frame,
+                    f"Searching {len(detected_ids)} / {len(expected_ids)} markers",
+                    Color.RED.value
+                )
+                cv2.imshow("Calibration", frame)
 
             # Marker 개수 검증
             if marker_count == len(marker_ids):
