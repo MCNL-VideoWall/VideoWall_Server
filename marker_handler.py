@@ -23,12 +23,11 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
     marker_id = {info[0] for info in clients.value()}
     logger.info(f"Marker ID: {marker_id}")
 
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        logger.error("Camera not found")
+
     try:
-        cap = cv2.VideoCapture(0)
-
-        if not cap.isOpened():
-
-            raise ConnectionError("Connection Error: Camera not found.")
 
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
         aruco_params = cv2.aruco.DetectorParameters()
