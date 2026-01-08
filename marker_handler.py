@@ -53,6 +53,8 @@ def captureMarker(clients: Dict[str, Tuple[int, WebSocket]]):
             detected_ids = set(ids.flatten()) if ids is not None else set()
 
             status_text = f"Found {marker_count} / {len(marker_ids)} markers"
+
+            color = Color.RED.value  # 폰트 색상
     except ConnectionError as e:
         logger.error(f"{e}")
     except RuntimeError as e:
