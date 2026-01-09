@@ -56,6 +56,10 @@ async def websocket_endpoint(websocket: WebSocket, client_uuid: str):
         }
         await websocket.send_json(message)
 
+        # Connection 유지
+        while True:
+            await websocket.receive_text()
+
     except WebSocketDisconnect:
         print(f"WebSocketDisconnect: {client_uuid}")
     except Exception as e:
